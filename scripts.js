@@ -1,22 +1,26 @@
 let jkudata = null
-const pauseStarts = new Set([600, 705, 810, 915, 1020, 1125, 1215, 1320])
+const buildings = {}
 const startTime = 510
 const endTime = 1335
 const timeStep = 15
 
 /** fetch data from jkuroomsearch and create table */
 function init() {
+	const today = new Date()
+	document.getElementById("dayinput").valueAsDate = today
+	const dateStr = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + today.getDate()
+	
 	fetch("https://jkuroomsearch.app/data/index.json")
 		.then((response) => response.json())
-		.then(data => { jkudata = data; createTable() })
+		.then(data => { jkudata = data; createTable(); selectDay(dateStr); })
 }
 
 /** create the main time table */
 function createTable() {
-	const body = document.body, tbl = document.createElement('table')
-	const buildings = {}
+	const tbl = document.createElement('table')
+	tbl.id = "maintable"
 	
-	// sort rooms into buildings
+	// group rooms into buildings
 	for (room in jkudata.rooms) {
 		const r = jkudata.rooms[room]
 		const bNo = r.building
@@ -27,27 +31,34 @@ function createTable() {
 		buildings[bNo][room] = r
 	}
 	
-	// add header row
-	const tr = tbl.insertRow()
-	const td = tr.insertCell()
-	const str = document.createElement("strong")
-	str.appendChild(document.createTextNode("8"))
-	td.appendChild(str)
+	// add header row with time stamps
+	const tr = tbl.createTHead().insertRow()
+	const th = document.createElement("th")
+	th.appendChild(document.createTextNode("8"))
+	th.style.textAlign = "right"
+	tr.appendChild(th)
+	
 	for (i = startTime; i < endTime; i += timeStep) {
-		const td = tr.insertCell()
+		const th = tbl.createTHead()
 		if (i % 60 == 0) {
-			const str = document.createElement("strong")
-			str.appendChild(document.createTextNode(i / 60))
-			td.appendChild(str)
+			const th = document.createElement("th")
+			th.appendChild(document.createTextNode(i / 60))
+			tr.appendChild(th)
 		} else {
-			td.appendChild(document.createTextNode(i % 60))
+			const small = document.createElement("small")
+			small.appendChild(document.createTextNode(i % 60))
+			const th = document.createElement("th")
+			th.appendChild(small)
+			tr.appendChild(th)
 		}
 	}
 	
 	// add rows for each room
+	const tbody = tbl.createTBody()
+	
 	for (b in buildings) {
 		// add special building header row
-		const tr = tbl.insertRow()
+		const tr = tbody.insertRow()
 		const td = tr.insertCell()
 		const str = document.createElement("strong")
 		str.appendChild(document.createTextNode(jkudata.buildings[b].name))
@@ -55,35 +66,75 @@ function createTable() {
 		
 		// add room rows for this building
 		for (r in buildings[b]) {
-			const tr = tbl.insertRow()
+			const tr = tbody.insertRow()
 			const td = tr.insertCell()
 			const rm = buildings[b][r]
 			td.appendChild(document.createTextNode(`${rm.name} (${rm.capacity})`))
 			
 			for (i = startTime; i < endTime; i += timeStep) {
 				const td = tr.insertCell()
-				
-				if (!isAvailable(r, i, "2024-01-08")) { // TODO: hardcoded for now...
-					const div = document.createElement("div")
-					td.appendChild(div)
-					div.classList.add("unavailable")
-				}
+				td.appendChild(document.createElement("div"))
 			}
 		}
 	}
-	body.appendChild(tbl)
+	document.body.appendChild(tbl)
+}
+
+function selectButtonClick() {
+	const dayinput = document.getElementById("dayinput")
+	selectDay(dayinput.value)
+}
+
+/** select the date for which the data should be shown (in "YYYY-MM-DD" format) */
+function selectDay(date) {
+	const title = document.getElementById("dataTitle")
+	if (!date) {
+		title.innerHTML = "Please select a day" // TODO: hide table...
+	} else if (!Object.hasOwn(jkudata.available, date)) {
+		title.innerHTML = "No data for " + date // TODO: hide table
+	} else {
+		title.innerHTML = "Showing data for " + date
+		fillTable(date)
+	}
+}
+
+/** fill the time table with availablility data for the specified day (in "YYYY-MM-DD" format) */
+function fillTable(date) {
+	const tbl = document.getElementById("maintable")
+	let rowIdx = 1 // ignore header row
+	for (b in buildings) {
+		// skip building row
+		rowIdx++
+		
+		// add room rows for this building
+		for (r in buildings[b]) {
+			let cellIdx = 1 // ignore first column
+			
+			for (i = startTime; i < endTime; i += timeStep) {
+				const div = tbl.rows[rowIdx].cells[cellIdx].children[0]
+				
+				if (!isAvailable(r, i, date)) {
+					div.classList.add("unavailable")
+				} else {
+					div.classList.remove("unavailable")
+				}
+				cellIdx++
+			}
+			rowIdx++
+		}
+	}
 }
 
 function isAvailable(room, time, date) {
-	//if (pauseStarts.has(time)) {
-	//	return true;
-	//}
 	const day = jkudata.available[date]
 	
+	if (Object.keys(day).length === 0) { // days with no slots are empty objects
+		return true
+	}
 	for (slot in day[room]) {
 		if (time >= day[room][slot][0] && time < day[room][slot][1]) {
-			return true;
+			return true
 		}
 	}
-	return false;
+	return false
 }

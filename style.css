@@ -7,37 +7,48 @@ body {
 	height: 50%;
 }
 
+/* table styling */
 table {
 	border-collapse: collapse;
 	overflow: hidden;
+	margin: 0 auto;
 }
+
+tbody > tr:hover {
+	background-color: #9ec5fe;
+}
+
 
 tr {
 	height: 30px;
 }
 
+th {
+	position: sticky;
+	top: 0px;
+	background-color: white;
+	z-index: 1000;
+}
+
+th > small {
+	color: #888;
+}
+
 td {
+	position: relative;
 	min-width: 30px;
 	background-color: rgba(200, 200, 200, 0.4);
 	height: inherit;
 	padding: 0;
 }
 
-tr:hover {
-	background-color: #9ec5fe;
-}
-
-th:nth-child(even),td:first-child {
+td:first-child {
 	background-color: white;
 	text-align: right;
 	padding-right: 10px;
 }
 
-td, th {
-	position: relative;
-}
-td:hover::after,
-th:hover::after {
+td:hover::after {
 	content: "";
 	position: absolute;
 	background-color: #9ec5fe;

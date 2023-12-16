@@ -13,11 +13,17 @@
 </head>
 <body onload="init()">
 
-<h1>JKU Time Table</h1>
-<h3> Under construction </h3>
-<p>what you are seeing now is just a rough first test version...</p>
-<h3> Disclaimer </h3>
-<p>This is an unofficial service, provided without guarantees. Results are based on data from  <a href="https://jkuroomsearch.app/">jkuroomsearch.app</a></p>
+<main>
+	<h1>JKU Time Table</h1>
+	<h3> Under construction </h3>
+		<p>what you are seeing now is just a rough first test version...</p>
+	<h3> Disclaimer </h3>
+		<p>This is an unofficial service, provided without guarantees. Results are based on data from  <a href="https://jkuroomsearch.app/">jkuroomsearch.app</a></p>
+	<h3> Pick a day </h3>
+		<input type="date" id="dayinput" name="day input" />
+		<button type="button" name="select day" onclick="selectButtonClick()"> GO! </button>
+	<h2 id="dataTitle"> </h2>
+</main>
 
 </body>
 </html>
