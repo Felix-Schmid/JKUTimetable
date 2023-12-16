@@ -6,7 +6,7 @@
 	<script src="scripts.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 	
 	<meta name="author" content="Felix Schmid"/>
 	<meta name="keywords" content=""/>
@@ -34,7 +34,7 @@
 	
 	</div>
 
-	<div id="usageStats" class="tabcontent"> <!-- per day -->
+	<div id="usageStats" class="tabcontent chartRegion"> <!-- per day -->
 		<h1> A total of ... hours of lectures this day! </h1> <!-- total amount of lectures (in hours) -->
 		
 		<h2> The busiest rooms for this day. </h2> <!-- x most busy rooms (in h of lectures) -->
@@ -47,6 +47,11 @@
 			<canvas id="busyBuildings"></canvas>
 		</div>
 		
+		<h2> Most students are here at... </h2> <!-- most busy time slots -->
+		<div class="chart">
+			<canvas id="timeslotUsage"></canvas>
+		</div>
+		
 		<h2> Are all rooms booked out? </h2> <!-- x highest usage % rooms -->
 		<div class="chart">
 			<canvas id="roomUsage"></canvas>
@@ -56,32 +61,32 @@
 		<div class="chart">
 			<canvas id="buildingUsage"></canvas>
 		</div>
-
-		<h2> Most students are here at... </h2> <!-- most busy time slots -->
-		<div class="chart">
-			<canvas id="timeslotUsage"></canvas>
-		</div>
 	</div>
 
-	<div id="capacityStats" class="tabcontent"> <!-- static -->
-		<h1> Space for ... students at the same time! </h1> <!-- total capacity -->
+	<div id="capacityStats" class="tabcontent chartRegion"> <!-- static -->
+		<h1 id="capacityStatsTitle"> </h1>
+		<p id="capacityStatsHint"> </p>
 		
-		<h2> 👏 This room can fit so many students in it. </h2> <!-- x largest rooms -->
+		<h2> 👏 This room can fit so many students in it. </h2>
+		<p> Here are the 15 largest lecture rooms. </p>
 		<div class="chart">
 			<canvas id="largestRooms"></canvas>
 		</div>
 		
-		<h2> Small but mighty. </h2> <!-- x smallest rooms -->
+		<h2> Small but mighty. </h2>
+		<p> And here the 15 smallest ones. </p>
 		<div class="chart">
 			<canvas id="smallestRooms"></canvas>
 		</div>
 		
-		<h2> Most of the rooms are in... </h2> <!-- number of rooms per building -->
+		<h2> Most of the rooms are in... </h2>
+		<p> How many lecture rooms there are per building. </p>
 		<div class="chart">
 			<canvas id="roomCount"></canvas>
 		</div>
 		
-		<h2> Which building can be the most crowded? </h2> <!-- total capacity per building (pie chart) -->
+		<h2> Which building can be the most crowded? </h2>
+		<p> The total capacity of all rooms in a building. </p>
 		<div class="chart">
 			<canvas id="largestBuildings"></canvas>
 		</div>

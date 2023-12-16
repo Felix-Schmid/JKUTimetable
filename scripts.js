@@ -12,7 +12,7 @@ function init() {
 	
 	fetch("https://jkuroomsearch.app/data/index.json")
 		.then((response) => response.json())
-		.then(data => { jkudata = data; createTable(); fillTable(dateStr); createUsageStatistics(); })
+		.then(data => { jkudata = data; createTable(); selectDay(dateStr); createCapacityStatistics(); })
 		
 		// TODO: system for lazy loading tabs...
 		
@@ -152,27 +152,109 @@ function isAvailable(room, time, date) {
 	return false
 }
 
+/** create all charts and other info for the usage stats page */
 function createUsageStatistics() {
-	const ctx = document.getElementById("busyRooms");
+	// TODO...
+}
 
-	new Chart(ctx, {
+/** create all charts and other info for the capacity stats page */
+function createCapacityStatistics() {
+	const rs = Array(Object.keys(jkudata.rooms).length)
+	const bs = Array(Object.keys(jkudata.buildings).length)
+	let totalCap = 0
+	
+	for (b in buildings) {
+		for (r in buildings[b]) {
+			const room = buildings[b][r]
+			rs[r] = { name:room.name, capacity:room.capacity }
+			
+			if (bs[b] == undefined) {
+				bs[b] = { name:jkudata.buildings[b].name, capacity:0, nRooms:0 }
+			}
+			bs[b].capacity += room.capacity
+			bs[b].nRooms++
+			totalCap += room.capacity
+		}
+	}
+	const bsf = bs.filter(function (elem) { return elem != null; })
+	const opts = {
+		responsive: true,
+		plugins: {
+			legend: { position: 'right' },
+		}
+	}
+	
+	// total capacity
+	document.getElementById("capacityStatsTitle").innerHTML = `Space for ${totalCap} students!`
+	document.getElementById("capacityStatsHint").innerHTML = "That's the total capacity of all" +
+		` ${rs.length} lecture rooms in ${bsf.length} different buildings.`
+	
+	// largest rooms
+	rs.sort((a, b) => b.capacity - a.capacity)
+	new Chart(document.getElementById("largestRooms"), {
 		type: "bar",
 		data: {
-			labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+			labels: rs.slice(0, 15).map(item => item.name),
 			datasets: [{
-				label: 'TEST PLOT - NOT FINAL',
-				data: [12, 19, 3, 5, 2, 3],
-				borderWidth: 1
+				label: 'room capacity',
+				data: rs.slice(0, 15).map(item => item.capacity),
+				backgroundColor: "#0d6efd"
 			}]
-		},
-		options: {
-			scales: {
-				y: {
-					beginAtZero: true
-				}
-			}
 		}
 	});
+	
+	// smallest rooms
+	rs.sort((a, b) => a.capacity - b.capacity)
+	new Chart(document.getElementById("smallestRooms"), {
+		type: "bar",
+		data: {
+			labels: rs.slice(0, 15).map(item => item.name),
+			datasets: [{
+				label: 'room capacity',
+				data: rs.slice(0, 15).map(item => item.capacity),
+				backgroundColor: "#0d6efd"
+			}]
+		}
+	});
+	
+	// room count
+	bsf.sort((a, b) => b.nRooms - a.nRooms)
+	new Chart(document.getElementById("roomCount"), {
+		type: "bar",
+		data: {
+			labels: bsf.map(item => shortBuildingName(item.name)),
+			datasets: [{
+				label: 'room count',
+				data: bsf.map(item => item.nRooms),
+				backgroundColor: "#0d6efd"
+			}]
+		}
+	});
+	
+	// building capacity
+	bsf.sort((a, b) => b.capacity - a.capacity)
+	new Chart(document.getElementById("largestBuildings"), {
+		type: "bar",
+		data: {
+			labels: bsf.map(item => shortBuildingName(item.name)),
+			datasets: [{
+				label: 'building capacity',
+				data: bsf.map(item => item.capacity),
+				backgroundColor: "#0d6efd"
+			}]
+		}
+	});
+}
+
+/** takes a string and returns the expression in the first parentheses or "" if none found */
+function shortBuildingName(fullname) {
+	const match = fullname.match(/\((.*?)\)/);
+
+	if (match) {
+		return match[1]
+	} else {
+		return ""
+	}
 }
 
 /** display one of the tabs and hide the others */
@@ -190,6 +272,6 @@ function openTab(evt, tabName) {
 	}
 
 	// Show the current tab, and add an "active" class to the button that opened the tab
-	document.getElementById(tabName).style.display = "initial"
+	document.getElementById(tabName).style.display = "block"
 	evt.currentTarget.classList.add("tablinkactive")
 }
