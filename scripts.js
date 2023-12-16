@@ -12,7 +12,11 @@ function init() {
 	
 	fetch("https://jkuroomsearch.app/data/index.json")
 		.then((response) => response.json())
-		.then(data => { jkudata = data; createTable(); selectDay(dateStr); })
+		.then(data => { jkudata = data; createTable(); fillTable(dateStr); createUsageStatistics(); })
+		
+		// TODO: system for lazy loading tabs...
+		
+	document.getElementById("defaultTab").click();
 }
 
 /** create the main time table */
@@ -79,7 +83,7 @@ function createTable() {
 			}
 		}
 	}
-	document.body.appendChild(tbl)
+	document.getElementById("timetable").appendChild(tbl)
 }
 
 function selectButtonClick() {
@@ -146,4 +150,46 @@ function isAvailable(room, time, date) {
 		}
 	}
 	return false
+}
+
+function createUsageStatistics() {
+	const ctx = document.getElementById("busyRooms");
+
+	new Chart(ctx, {
+		type: "bar",
+		data: {
+			labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+			datasets: [{
+				label: 'TEST PLOT - NOT FINAL',
+				data: [12, 19, 3, 5, 2, 3],
+				borderWidth: 1
+			}]
+		},
+		options: {
+			scales: {
+				y: {
+					beginAtZero: true
+				}
+			}
+		}
+	});
+}
+
+/** display one of the tabs and hide the others */
+function openTab(evt, tabName) {
+	// hide all tabs
+	const tabcontent = document.getElementsByClassName("tabcontent")
+	for (let i = 0; i < tabcontent.length; i++) {
+		tabcontent[i].style.display = "none"
+	}
+
+	// remove active from tablinks
+	const tablinks = document.getElementsByClassName("tablinks")
+	for (let i = 0; i < tabcontent.length; i++) {
+		tablinks[i].classList.remove("tablinkactive")
+	}
+
+	// Show the current tab, and add an "active" class to the button that opened the tab
+	document.getElementById(tabName).style.display = "initial"
+	evt.currentTarget.classList.add("tablinkactive")
 }

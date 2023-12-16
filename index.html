@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-	<title>JKU Time Table</title>
+	<title>JKU Timetable</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<script src="scripts.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	
@@ -14,9 +15,7 @@
 <body onload="init()">
 
 <main>
-	<h1>JKU Time Table</h1>
-	<h3> Under construction </h3>
-		<p>what you are seeing now is just a rough first test version...</p>
+	<h1>JKU Timetable</h1>
 	<h3> Disclaimer </h3>
 		<p>This is an unofficial service, provided without guarantees. Results are based on data from  <a href="https://jkuroomsearch.app/">jkuroomsearch.app</a></p>
 	<h3> Pick a day </h3>
@@ -24,6 +23,69 @@
 		<button type="button" name="select day" onclick="selectButtonClick()"> GO! </button>
 	<h2 id="dataTitle"> </h2>
 	<p id="dataHint"> </p>
+	
+	<div class="tab">
+		<button id="defaultTab" class="tablinks" onclick="openTab(event, 'timetable')">Timetable</button>
+		<button class="tablinks" onclick="openTab(event, 'usageStats')">Usage Statistics</button>
+		<button class="tablinks" onclick="openTab(event, 'capacityStats')">Capacity Statistics</button>
+	</div>
+	
+	<div id="timetable" class="tabcontent">
+	
+	</div>
+
+	<div id="usageStats" class="tabcontent"> <!-- per day -->
+		<h1> A total of ... hours of lectures this day! </h1> <!-- total amount of lectures (in hours) -->
+		
+		<h2> The busiest rooms for this day. </h2> <!-- x most busy rooms (in h of lectures) -->
+		<div class="chart">
+			<canvas id="busyRooms"></canvas>
+		</div>
+		
+		<h2> Which buildings get all the action? </h2> <!-- most busy buildings (in %) -->
+		<div class="chart">
+			<canvas id="busyBuildings"></canvas>
+		</div>
+		
+		<h2> Are all rooms booked out? </h2> <!-- x highest usage % rooms -->
+		<div class="chart">
+			<canvas id="roomUsage"></canvas>
+		</div>
+		
+		<h2> Some slots are still available at... </h2> <!-- x lowest usage % rooms -->
+		<div class="chart">
+			<canvas id="buildingUsage"></canvas>
+		</div>
+
+		<h2> Most students are here at... </h2> <!-- most busy time slots -->
+		<div class="chart">
+			<canvas id="timeslotUsage"></canvas>
+		</div>
+	</div>
+
+	<div id="capacityStats" class="tabcontent"> <!-- static -->
+		<h1> Space for ... students at the same time! </h1> <!-- total capacity -->
+		
+		<h2> 👏 This room can fit so many students in it. </h2> <!-- x largest rooms -->
+		<div class="chart">
+			<canvas id="largestRooms"></canvas>
+		</div>
+		
+		<h2> Small but mighty. </h2> <!-- x smallest rooms -->
+		<div class="chart">
+			<canvas id="smallestRooms"></canvas>
+		</div>
+		
+		<h2> Most of the rooms are in... </h2> <!-- number of rooms per building -->
+		<div class="chart">
+			<canvas id="roomCount"></canvas>
+		</div>
+		
+		<h2> Which building can be the most crowded? </h2> <!-- total capacity per building (pie chart) -->
+		<div class="chart">
+			<canvas id="largestBuildings"></canvas>
+		</div>
+	</div>
 </main>
 
 </body>

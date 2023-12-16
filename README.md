@@ -1,4 +1,4 @@
-# JKU Time Table
+# JKU Timetable
 
 This website will use data from jkuroomsearch.app to show what's happening at the university.
 

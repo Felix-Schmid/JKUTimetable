@@ -11,6 +11,40 @@ main {
 	height: 50%;
 }
 
+.chart {
+	max-width: 600px;
+}
+
+/* tab control styling */
+.tab {
+	overflow: hidden;
+	border: 1px solid #ccc;
+	background-color: #f1f1f1;
+	margin-bottom: 20px;
+}
+
+.tab button {
+	background-color: inherit;
+	float: left;
+	border: none;
+	outline: none;
+	cursor: pointer;
+	padding: 14px 16px;
+}
+
+.tab button:hover {
+	background-color: #ddd;
+}
+
+.tab button.tablinkactive {
+	background-color: #ccc;
+}
+
+.tabcontent {
+	display: none;
+	padding: 6px 12px;
+}
+
 /* table styling */
 table {
 	border-collapse: collapse;
