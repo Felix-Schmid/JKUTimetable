@@ -35,7 +35,7 @@ function createTable() {
 	const tr = tbl.createTHead().insertRow()
 	const th = document.createElement("th")
 	th.appendChild(document.createTextNode("8"))
-	th.style.textAlign = "right"
+	th.style.fontWeight = "bold"
 	tr.appendChild(th)
 	
 	for (i = startTime; i < endTime; i += timeStep) {
@@ -59,17 +59,19 @@ function createTable() {
 	for (b in buildings) {
 		// add special building header row
 		const tr = tbody.insertRow()
-		const td = tr.insertCell()
+		const th = document.createElement("th")
+		tr.appendChild(th)
 		const str = document.createElement("strong")
 		str.appendChild(document.createTextNode(jkudata.buildings[b].name))
-		td.appendChild(str)
+		th.appendChild(str)
 		
 		// add room rows for this building
 		for (r in buildings[b]) {
 			const tr = tbody.insertRow()
-			const td = tr.insertCell()
+			const th = document.createElement("th")
+			tr.appendChild(th)
 			const rm = buildings[b][r]
-			td.appendChild(document.createTextNode(`${rm.name} (${rm.capacity})`))
+			th.appendChild(document.createTextNode(`${rm.name} (${rm.capacity})`))
 			
 			for (i = startTime; i < endTime; i += timeStep) {
 				const td = tr.insertCell()
@@ -88,12 +90,18 @@ function selectButtonClick() {
 /** select the date for which the data should be shown (in "YYYY-MM-DD" format) */
 function selectDay(date) {
 	const title = document.getElementById("dataTitle")
+	const hint = document.getElementById("dataHint")
 	if (!date) {
 		title.innerHTML = "Please select a day" // TODO: hide table...
+		hint.innerHTML = ""
 	} else if (!Object.hasOwn(jkudata.available, date)) {
-		title.innerHTML = "No data for " + date // TODO: hide table
+		title.innerHTML = "No data for " + date // TODO: hide table...
+		const start = jkudata.range.start.split("T")[0]
+		const end = jkudata.range.end.split("T")[0]
+		hint.innerHTML = "Available data ranges from " + start + " until " + end + "."
 	} else {
 		title.innerHTML = "Showing data for " + date
+		hint.innerHTML = ""
 		fillTable(date)
 	}
 }
@@ -125,6 +133,7 @@ function fillTable(date) {
 	}
 }
 
+/** check if a given room is available at a given time and date */
 function isAvailable(room, time, date) {
 	const day = jkudata.available[date]
 	

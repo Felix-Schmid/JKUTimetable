@@ -2,6 +2,10 @@ body {
 	font-family: sans-serif;
 }
 
+main {
+	max-width: 100%;
+}
+
 .unavailable {
 	background-color: #0d6efd;
 	height: 50%;
@@ -10,28 +14,24 @@ body {
 /* table styling */
 table {
 	border-collapse: collapse;
-	overflow: hidden;
 	margin: 0 auto;
+	overflow: clip;
 }
 
-tbody > tr:hover {
+table th:first-child {
+	top: -50px;
+	left: 0;
+	text-align: right;
+	padding: 0 10px;
+	font-weight: normal;
+}
+
+tbody > tr:hover { /* for row hover selection */
 	background-color: #9ec5fe;
 }
 
-
 tr {
 	height: 30px;
-}
-
-th {
-	position: sticky;
-	top: 0px;
-	background-color: white;
-	z-index: 1000;
-}
-
-th > small {
-	color: #888;
 }
 
 td {
@@ -42,13 +42,7 @@ td {
 	padding: 0;
 }
 
-td:first-child {
-	background-color: white;
-	text-align: right;
-	padding-right: 10px;
-}
-
-td:hover::after {
+td:hover::after { /* for column hover selection */
 	content: "";
 	position: absolute;
 	background-color: #9ec5fe;
@@ -57,4 +51,15 @@ td:hover::after {
 	height: 10000px;
 	width: 100%;
 	z-index: -1;
+}
+
+th {
+	position: sticky;
+	top: 0;
+	background-color: white;
+	z-index: 100;
+}
+
+th > small {
+	color: #888;
 }
