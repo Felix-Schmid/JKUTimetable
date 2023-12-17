@@ -27,13 +27,15 @@ main, .chartRegion {
 }
 
 #datepanel {
-    font-size: 1.5em;
-    margin: 0.83em 0 0.83em 0;
-    font-weight: bold;
+	display: flex;
+	align-items: center;
+	font-size: 1.5em;
+	margin: 0.83em 0 0.83em 0;
+	font-weight: bold;
 }
 
 #datepanel input {
-	margin-left: 2px;
+	margin-left: 10px;
 }
 
 .unavailable {

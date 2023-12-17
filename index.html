@@ -45,31 +45,31 @@
 <div id="timetable" class="tabcontent"></div>
 
 <div id="usageStats" class="tabcontent chartRegion"> <!-- per day -->
-	<h1> A total of ... hours of lectures this day! </h1> <!-- total amount of lectures (in hours) -->
+	<h1 id="usageStatsTitle"> </h1>
+	<p id="usageStatsHint"> </p>
 	
-	<h2> The busiest rooms for this day. </h2> <!-- x most busy rooms (in h of lectures) -->
+	<h2> Most students are here at... </h2>
+	<p> Which time slots have the most lectures at the same time? </p>
+	<div class="chart">
+		<canvas id="busyTimeSlots"></canvas>
+	</div>
+	
+	<h2> Are all rooms booked out? </h2>
+	<p> The 15 rooms with the highest usage rate. </p>
 	<div class="chart">
 		<canvas id="busyRooms"></canvas>
 	</div>
 	
-	<h2> Which buildings get all the action? </h2> <!-- most busy buildings (in %) -->
+	<h2> Some slots are still available at... </h2>
+	<p> The 15 rooms with the lowest usage rate. </p>
+	<div class="chart">
+		<canvas id="lazyRooms"></canvas>
+	</div>
+	
+	<h2> Which buildings get all the action? </h2>
+	<p> Total lecture times per building. </p>
 	<div class="chart">
 		<canvas id="busyBuildings"></canvas>
-	</div>
-	
-	<h2> Most students are here at... </h2> <!-- most busy time slots -->
-	<div class="chart">
-		<canvas id="timeslotUsage"></canvas>
-	</div>
-	
-	<h2> Are all rooms booked out? </h2> <!-- x highest usage % rooms -->
-	<div class="chart">
-		<canvas id="roomUsage"></canvas>
-	</div>
-	
-	<h2> Some slots are still available at... </h2> <!-- x lowest usage % rooms -->
-	<div class="chart">
-		<canvas id="buildingUsage"></canvas>
 	</div>
 </div>
 

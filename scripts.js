@@ -8,11 +8,11 @@ const timeStep = 15
 function init() {
 	const today = new Date()
 	document.getElementById("dayinput").valueAsDate = today
-	const dateStr = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + today.getDate()
+	const date = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + today.getDate()
 	
 	fetch("https://jkuroomsearch.app/data/index.json")
 		.then((response) => response.json())
-		.then(data => { jkudata = data; createTable(); selectDay(dateStr); createCapacityStatistics(); })
+		.then(data => { jkudata = data; createTable(); selectDay(date); createCapacityStatistics(); createUsageStatistics("2023-12-15") })
 		
 		// TODO: system for lazy loading tabs...
 		
@@ -25,7 +25,7 @@ function createTable() {
 	tbl.id = "maintable"
 	
 	// group rooms into buildings
-	for (room in jkudata.rooms) {
+	for (let room in jkudata.rooms) {
 		const r = jkudata.rooms[room]
 		const bNo = r.building
 		
@@ -42,7 +42,7 @@ function createTable() {
 	th.style.fontWeight = "bold"
 	tr.appendChild(th)
 	
-	for (i = startTime; i < endTime; i += timeStep) {
+	for (let i = startTime; i < endTime; i += timeStep) {
 		const th = tbl.createTHead()
 		if (i % 60 == 0) {
 			const th = document.createElement("th")
@@ -60,7 +60,7 @@ function createTable() {
 	// add rows for each room
 	const tbody = tbl.createTBody()
 	
-	for (b in buildings) {
+	for (let b in buildings) {
 		// add special building header row
 		const tr = tbody.insertRow()
 		const th = document.createElement("th")
@@ -70,7 +70,7 @@ function createTable() {
 		th.appendChild(str)
 		
 		// add room rows for this building
-		for (r in buildings[b]) {
+		for (let r in buildings[b]) {
 			const rm = buildings[b][r]
 			
 			const tr = tbody.insertRow()
@@ -113,8 +113,8 @@ function selectDay(date) {
 	} else if (!Object.hasOwn(jkudata.available, date)) {
 		const start = jkudata.range.start.split("T")[0]
 		const end = jkudata.range.end.split("T")[0]
-		errorMsg.innerHTML = `<p>No data available for ${date}.</p>` +
-			`<p>Try selecting a date between ${start} and ${end}.</p>`
+		errorMsg.innerHTML = `<p>No data available for <strong>${date}</strong>.</p>` +
+			`<p>Try selecting a date between <strong>${start}</strong> and <strong>${end}</strong>.</p>`
 		errorMsg.style.display = "block" // TODO: hide table and usage stats
 	} else {
 		errorMsg.style.display = "none"
@@ -126,15 +126,15 @@ function selectDay(date) {
 function fillTable(date) {
 	const tbl = document.getElementById("maintable")
 	let rowIdx = 1 // ignore header row
-	for (b in buildings) {
+	for (let b in buildings) {
 		// skip building row
 		rowIdx++
 		
 		// add room rows for this building
-		for (r in buildings[b]) {
+		for (let r in buildings[b]) {
 			let cellIdx = 1 // ignore first column
 			
-			for (i = startTime; i < endTime; i += timeStep) {
+			for (let i = startTime; i < endTime; i += timeStep) {
 				const div = tbl.rows[rowIdx].cells[cellIdx].children[0]
 				
 				if (!isAvailable(r, i, date)) {
@@ -156,7 +156,7 @@ function isAvailable(room, time, date) {
 	if (Object.keys(day).length === 0) { // days with no slots are empty objects
 		return true
 	}
-	for (slot in day[room]) {
+	for (let slot in day[room]) {
 		if (time >= day[room][slot][0] && time < day[room][slot][1]) {
 			return true
 		}
@@ -165,8 +165,127 @@ function isAvailable(room, time, date) {
 }
 
 /** create all charts and other info for the usage stats page */
-function createUsageStatistics() {
-	// TODO...
+function createUsageStatistics(date) {
+	const rs = Array(Object.keys(jkudata.rooms).length)
+	const bs = Array(Object.keys(jkudata.buildings).length)
+	const slots = Array((endTime - startTime) / timeStep).fill(0)
+	const slotNames = Array((endTime - startTime) / timeStep)
+	let totalTime = 0
+	
+	for (let i = 0; i < slots.length; i++) {
+		const time = i * timeStep + startTime
+		
+		if (time % 60 == 0) {
+			slotNames[i] = `${time / 60}:00`
+		} else {
+			slotNames[i] = ""
+		}
+	}
+	
+	for (let b in buildings) {
+		if (bs[b] == undefined) {
+			bs[b] = { name:jkudata.buildings[b].name, time:0 }
+		}
+		for (let r in buildings[b]) {
+			const room = buildings[b][r]
+			rs[r] = { name:room.name, time:0 }
+			
+			for (let i = 0; i < slots.length; i++) {
+				const time = i * timeStep + startTime
+				if (!isAvailable(r, time, date)) {
+					rs[r].time += timeStep
+					bs[b].time += timeStep
+					slots[i]++
+					totalTime += timeStep
+				}
+			}
+		}
+	}
+	
+	const totalHours = Math.round(totalTime / 60)
+	const bsf = bs.filter(function (elem) { return elem != null; })
+	const stackedOption = {
+			scales: {
+				x: { stacked: true },
+				y: { stacked: true }
+			}
+		}
+	
+	// total hours
+	document.getElementById("usageStatsTitle").innerHTML = `A total of ~${totalHours} hours of lectures this day!`
+	
+	if (totalHours <= 10) {
+		document.getElementById("usageStatsHint").innerHTML = "*crickets*"
+	} else if (totalHours <= 100) {
+		document.getElementById("usageStatsHint").innerHTML = "Not too much going on this day."
+	} else {
+		document.getElementById("usageStatsHint").innerHTML = "Seems like another busy day at the JKU."
+	}
+	
+	// busiest time slots
+	new Chart(document.getElementById("busyTimeSlots"), {
+		type: "line",
+		data: {
+			labels: slotNames,
+			datasets: [{
+				label: "# of lectures",
+				data: slots.map(item => item),
+				backgroundColor: "#5b9bd5"
+			}]
+		}
+	});
+	
+	// busiest rooms
+	rs.sort((a, b) => b.time - a.time)
+	new Chart(document.getElementById("busyRooms"), {
+		type: "bar",
+		data: {
+			labels: rs.slice(0, 15).map(item => item.name),
+			datasets: [{
+				label: "% occupied",
+				data: rs.slice(0, 15).map(item => item.time / (slots.length * timeStep) * 100),
+				backgroundColor: "#ed7d31"
+			}, {
+				label: "% free",
+				data: rs.slice(0, 15).map(item => 100 - (item.time / (slots.length * timeStep)) * 100),
+				backgroundColor: "#70ad47"
+			}]
+		},
+		options: stackedOption
+	});
+	
+	// laziest rooms
+	rs.sort((a, b) => a.time - b.time)
+	new Chart(document.getElementById("lazyRooms"), {
+		type: "bar",
+		data: {
+			labels: rs.slice(0, 15).map(item => item.name),
+			datasets: [{
+				label: "% occupied",
+				data: rs.slice(0, 15).map(item => item.time / (slots.length * timeStep) * 100),
+				backgroundColor: "#ed7d31"
+			}, {
+				label: "% free",
+				data: rs.slice(0, 15).map(item => 100 - (item.time / (slots.length * timeStep)) * 100),
+				backgroundColor: "#70ad47"
+			}]
+		},
+		options: stackedOption
+	});
+	
+	// busy buildings
+	bsf.sort((a, b) => b.time - a.time)
+	new Chart(document.getElementById("busyBuildings"), {
+		type: "bar",
+		data: {
+			labels: bsf.map(item => shortBuildingName(item.name)),
+			datasets: [{
+				label: "total lecture time",
+				data: bsf.map(item => item.time / 60),
+				backgroundColor: "#5b9bd5"
+			}]
+		}
+	});
 }
 
 /** create all charts and other info for the capacity stats page */
@@ -175,14 +294,13 @@ function createCapacityStatistics() {
 	const bs = Array(Object.keys(jkudata.buildings).length)
 	let totalCap = 0
 	
-	for (b in buildings) {
-		for (r in buildings[b]) {
+	for (let b in buildings) {
+		if (bs[b] == undefined) {
+			bs[b] = { name:jkudata.buildings[b].name, capacity:0, nRooms:0 }
+		}
+		for (let r in buildings[b]) {
 			const room = buildings[b][r]
 			rs[r] = { name:room.name, capacity:room.capacity }
-			
-			if (bs[b] == undefined) {
-				bs[b] = { name:jkudata.buildings[b].name, capacity:0, nRooms:0 }
-			}
 			bs[b].capacity += room.capacity
 			bs[b].nRooms++
 			totalCap += room.capacity
@@ -208,9 +326,9 @@ function createCapacityStatistics() {
 		data: {
 			labels: rs.slice(0, 15).map(item => item.name),
 			datasets: [{
-				label: 'room capacity',
+				label: "room capacity",
 				data: rs.slice(0, 15).map(item => item.capacity),
-				backgroundColor: "#0d6efd"
+				backgroundColor: "#5b9bd5"
 			}]
 		}
 	});
@@ -222,9 +340,9 @@ function createCapacityStatistics() {
 		data: {
 			labels: rs.slice(0, 15).map(item => item.name),
 			datasets: [{
-				label: 'room capacity',
+				label: "room capacity",
 				data: rs.slice(0, 15).map(item => item.capacity),
-				backgroundColor: "#0d6efd"
+				backgroundColor: "#5b9bd5"
 			}]
 		}
 	});
@@ -236,9 +354,9 @@ function createCapacityStatistics() {
 		data: {
 			labels: bsf.map(item => shortBuildingName(item.name)),
 			datasets: [{
-				label: 'room count',
+				label: "room count",
 				data: bsf.map(item => item.nRooms),
-				backgroundColor: "#0d6efd"
+				backgroundColor: "#ed7d31"
 			}]
 		}
 	});
@@ -250,9 +368,9 @@ function createCapacityStatistics() {
 		data: {
 			labels: bsf.map(item => shortBuildingName(item.name)),
 			datasets: [{
-				label: 'building capacity',
+				label: "building capacity",
 				data: bsf.map(item => item.capacity),
-				backgroundColor: "#0d6efd"
+				backgroundColor: "#70ad47"
 			}]
 		}
 	});
@@ -283,7 +401,7 @@ function openTab(evt, tabName) {
 		tablinks[i].classList.remove("tablinkactive")
 	}
 
-	// Show the current tab, and add an "active" class to the button that opened the tab
+	// Show the current tab, and highlight tablink
 	document.getElementById(tabName).style.display = "block"
 	evt.currentTarget.classList.add("tablinkactive")
 }
