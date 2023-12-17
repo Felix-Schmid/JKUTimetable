@@ -4,24 +4,22 @@ const usageCharts = {}
 const startTime = 510
 const endTime = 1335
 const timeStep = 15
+let usageCreated = false
+let capacityCreated = false
 
 /** fetch data from jkuroomsearch and create table */
 function init() {
 	const today = new Date()
-	document.getElementById("dayinput").valueAsDate = today
+	document.getElementById("dateinput").valueAsDate = today
 	const date = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + today.getDate()
 	
 	fetch("https://jkuroomsearch.app/data/index.json")
 		.then((response) => response.json())
 		.then(data => {
-			jkudata = data;
-			createTable();
-			createAndFillCapacityStats();
-			createUsageStats();
-			selectDay(date);
+			jkudata = data
+			createTable()
+			selectDay(date)
 		})
-		
-	// TODO: system for lazy loading tabs...
 		
 	document.getElementById("defaultTab").click();
 }
@@ -107,8 +105,8 @@ function createTable() {
 }
 
 function dateInputChanged() {
-	const dayinput = document.getElementById("dayinput")
-	selectDay(dayinput.value)
+	const dateinput = document.getElementById("dateinput")
+	selectDay(dateinput.value)
 }
 
 /** select the date for which the data should be shown (in "YYYY-MM-DD" format) */
@@ -127,10 +125,12 @@ function selectDay(date) {
 		errorMsg.style.display = "none"
 	}
 	fillTable(date)
-	fillUsageStats(date)
+	if (usageCreated) {
+		fillUsageStats(date)
+	}
 }
 
-/** fill the time table with availablility data for the specified day (in "YYYY-MM-DD" format) */
+/** fill the time table with availablility data for the specified date (in "YYYY-MM-DD" format) */
 function fillTable(date) {
 	const tbl = document.getElementById("maintable")
 	let rowIdx = 1 // ignore header row
@@ -175,21 +175,10 @@ function isAvailable(room, time, date) {
 let busyTimeSlots = null
 
 function fillUsageStats(date) {
-		const rs = Array(Object.keys(jkudata.rooms).length)
+	const rs = Array(Object.keys(jkudata.rooms).length)
 	const bs = Array(Object.keys(jkudata.buildings).length)
 	const slots = Array((endTime - startTime) / timeStep).fill(0)
-	const slotNames = Array((endTime - startTime) / timeStep)
 	let totalTime = 0
-	
-	for (let i = 0; i < slots.length; i++) {
-		const time = i * timeStep + startTime
-		
-		if (time % 60 == 0) {
-			slotNames[i] = `${time / 60}:00`
-		} else {
-			slotNames[i] = ""
-		}
-	}
 	
 	for (let b in buildings) {
 		if (bs[b] == undefined) {
@@ -227,7 +216,6 @@ function fillUsageStats(date) {
 	
 	// busiest time slots
 	const btsChart = usageCharts.busyTimeSlots
-	btsChart.data.labels = slotNames
 	btsChart.data.datasets[0].data = slots
 	btsChart.update()
 	
@@ -254,6 +242,15 @@ function fillUsageStats(date) {
 
 /** create all charts and other info for the usage stats page */
 function createUsageStats() {
+	usageCreated = true
+	const slotNames = Array((endTime - startTime) / timeStep)
+	
+	for (let i = 0; i < slotNames.length; i++) {
+		const time = i * timeStep + startTime
+		const min = ("" + time % 60).padStart(2, "0")
+		slotNames[i] = `${Math.floor(time / 60)}:${min}`
+	}
+	
 	const stackedOption = {
 		scales: {
 			x: { stacked: true },
@@ -265,7 +262,7 @@ function createUsageStats() {
 	usageCharts.busyTimeSlots = new Chart(document.getElementById("busyTimeSlots"), {
 		type: "line",
 		data: {
-			labels: [],
+			labels: slotNames,
 			datasets: [{
 				label: "# of lectures",
 				data: [],
@@ -278,7 +275,7 @@ function createUsageStats() {
 	usageCharts.busyRooms = new Chart(document.getElementById("busyRooms"), {
 		type: "bar",
 		data: {
-			labels: [],
+			labels: Array(15).fill(""),
 			datasets: [{
 				label: "% occupied",
 				data: [],
@@ -296,7 +293,7 @@ function createUsageStats() {
 	usageCharts.lazyRooms = new Chart(document.getElementById("lazyRooms"), {
 		type: "bar",
 		data: {
-			labels: [],
+			labels: Array(15).fill(""),
 			datasets: [{
 				label: "% occupied",
 				data: [],
@@ -314,7 +311,7 @@ function createUsageStats() {
 	usageCharts.busyBuildings = new Chart(document.getElementById("busyBuildings"), {
 		type: "bar",
 		data: {
-			labels: [],
+			labels: Array(Object.keys(jkudata.buildings).length).fill(""),
 			datasets: [{
 				label: "total lecture time",
 				data: [],
@@ -326,6 +323,7 @@ function createUsageStats() {
 
 /** create all charts and other info for the capacity stats page */
 function createAndFillCapacityStats() {
+	capacityCreated = true
 	const rs = Array(Object.keys(jkudata.rooms).length)
 	const bs = Array(Object.keys(jkudata.buildings).length)
 	let totalCap = 0
@@ -440,4 +438,11 @@ function openTab(evt, tabName) {
 	// Show the current tab, and highlight tablink
 	document.getElementById(tabName).style.display = "block"
 	evt.currentTarget.classList.add("tablinkactive")
+	
+	if (!usageCreated && tabName == "usageStats") {
+		createUsageStats()
+		fillUsageStats(document.getElementById("dateinput").value)
+	} else if (!capacityCreated && tabName == "capacityStats") {
+		createAndFillCapacityStats()
+	}
 }
