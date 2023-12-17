@@ -9,6 +9,10 @@ main, .chartRegion {
 	margin: 0 auto;
 }
 
+.chartRegion {
+	margin-bottom: 100px;
+}
+
 #disclaimer {
 	background-color: #e9e9e9;
 	border-left: 4px solid #c6c6c6;

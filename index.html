@@ -49,7 +49,7 @@
 	<p id="usageStatsHint"> </p>
 	
 	<h2> Most students are here at... </h2>
-	<p> Which time slots have the most lectures at the same time? </p>
+	<p> Time slots with the most lectures at the same time. </p>
 	<div class="chart">
 		<canvas id="busyTimeSlots"></canvas>
 	</div>
@@ -71,6 +71,12 @@
 	<div class="chart">
 		<canvas id="busyBuildings"></canvas>
 	</div>
+	
+	<h2> A monthly overview. </h2>
+	<p> The total lecture time for each day of the selected month. </p>
+	<div class="chart">
+		<canvas id="overviewMonth"></canvas>
+	</div>
 </div>
 
 <div id="capacityStats" class="tabcontent chartRegion"> <!-- static -->
@@ -78,13 +84,13 @@
 	<p id="capacityStatsHint"> </p>
 	
 	<h2> 👏 This room can fit so many students in it. </h2>
-	<p> Here are the 15 largest lecture rooms. </p>
+	<p> The 15 largest lecture rooms. </p>
 	<div class="chart">
 		<canvas id="largestRooms"></canvas>
 	</div>
 	
 	<h2> Small but mighty. </h2>
-	<p> And here the 15 smallest ones. </p>
+	<p> The 15 smallest lecture rooms. </p>
 	<div class="chart">
 		<canvas id="smallestRooms"></canvas>
 	</div>

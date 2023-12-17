@@ -1,24 +1,24 @@
 let jkudata = null
 const buildings = {}
 const usageCharts = {}
+const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const startTime = 510
 const endTime = 1335
 const timeStep = 15
 let usageCreated = false
 let capacityCreated = false
 
-/** fetch data from jkuroomsearch and create table */
+/** fetch data from jkuroomsearch, create table and select today as date */
 function init() {
 	const today = new Date()
 	document.getElementById("dateinput").valueAsDate = today
-	const date = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + today.getDate()
 	
 	fetch("https://jkuroomsearch.app/data/index.json")
 		.then((response) => response.json())
 		.then(data => {
 			jkudata = data
 			createTable()
-			selectDay(date)
+			selectDay(dateToString(today))
 		})
 		
 	document.getElementById("defaultTab").click();
@@ -174,6 +174,7 @@ function isAvailable(room, time, date) {
 
 let busyTimeSlots = null
 
+/** fill the usage statistics for the specified date (in "YYYY-MM-DD" format) */
 function fillUsageStats(date) {
 	const rs = Array(Object.keys(jkudata.rooms).length)
 	const bs = Array(Object.keys(jkudata.buildings).length)
@@ -202,6 +203,19 @@ function fillUsageStats(date) {
 	
 	const totalHours = Math.round(totalTime / 60)
 	const bsf = bs.filter(function (elem) { return elem != null; })
+	
+	let mDate = new Date(date)
+	let firstDay = new Date(mDate.getFullYear(), mDate.getMonth(), 1);
+	let currentDate = new Date(firstDay)
+	const month = Array()
+	
+	while (currentDate.getMonth() === mDate.getMonth()) {
+		const label = `${currentDate.getDate()}. (${dayNames[currentDate.getDay()]})`
+		const minutes = totalTimeMinutes(dateToString(currentDate))
+		month.push({ name:label, time:minutes })
+		
+		currentDate.setDate(currentDate.getDate() + 1)
+	}
 	
 	// total hours
 	document.getElementById("usageStatsTitle").innerHTML = `A total of ~${totalHours} hours of lectures this day!`
@@ -238,16 +252,21 @@ function fillUsageStats(date) {
 	bbChart.data.labels = bsf.map(item => shortBuildingName(item.name))
 	bbChart.data.datasets[0].data = bsf.map(item => item.time / 60)
 	bbChart.update()
+	
+	const omChart = usageCharts.overviewMonth
+	omChart.data.labels = month.map(item => item.name)
+	omChart.data.datasets[0].data = month.map(item => item.time / 60)
+	omChart.update()
 }
 
-/** create all charts and other info for the usage stats page */
+/** create all charts for the usage stats page */
 function createUsageStats() {
 	usageCreated = true
 	const slotNames = Array((endTime - startTime) / timeStep)
 	
 	for (let i = 0; i < slotNames.length; i++) {
 		const time = i * timeStep + startTime
-		const min = ("" + time % 60).padStart(2, "0")
+		const min = (time % 60).toString().padStart(2, "0")
 		slotNames[i] = `${Math.floor(time / 60)}:${min}`
 	}
 	
@@ -319,9 +338,22 @@ function createUsageStats() {
 			}]
 		}
 	});
+	
+	// overview month
+	usageCharts.overviewMonth = new Chart(document.getElementById("overviewMonth"), {
+		type: "line",
+		data: {
+			labels: Array(30).fill(""),
+			datasets: [{
+				label: "total lecture time",
+				data: [],
+				backgroundColor: "#5b9bd5"
+			}]
+		}
+	});
 }
 
-/** create all charts and other info for the capacity stats page */
+/** create and fill all charts and other info for the capacity stats page */
 function createAndFillCapacityStats() {
 	capacityCreated = true
 	const rs = Array(Object.keys(jkudata.rooms).length)
@@ -410,6 +442,25 @@ function createAndFillCapacityStats() {
 	});
 }
 
+/** gets the total hours of lectures for a specified date */
+function totalTimeMinutes(date) {
+	const day = jkudata.available[date]
+	
+	if (day == undefined || Object.keys(day).length === 0) { // days with no slots are empty objects
+		return 0
+	}
+	
+	let hours = 0
+	for (let room in jkudata.rooms) {
+		let rh = 0
+		for (let slot in day[room]) {
+			rh += day[room][slot][1] - day[room][slot][0]
+		}
+		hours += (endTime - startTime) - rh
+	}
+	return hours
+}
+
 /** takes a string and returns the expression in the first parentheses or "" if none found */
 function shortBuildingName(fullname) {
 	const match = fullname.match(/\((.*?)\)/);
@@ -419,6 +470,13 @@ function shortBuildingName(fullname) {
 	} else {
 		return ""
 	}
+}
+
+/** takes a Date object and returns a string in the format "YYYY-MM-DD" */
+function dateToString(date) {
+	const day = date.getDate().toString().padStart(2, "0")
+	const month = (date.getMonth()+1).toString().padStart(2, "0")
+	return `${date.getFullYear()}-${month}-${day}`
 }
 
 /** display one of the tabs and hide the others */
