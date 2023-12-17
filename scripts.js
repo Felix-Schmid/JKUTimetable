@@ -71,11 +71,24 @@ function createTable() {
 		
 		// add room rows for this building
 		for (r in buildings[b]) {
+			const rm = buildings[b][r]
+			
 			const tr = tbody.insertRow()
 			const th = document.createElement("th")
 			tr.appendChild(th)
-			const rm = buildings[b][r]
-			th.appendChild(document.createTextNode(`${rm.name} (${rm.capacity})`))
+			
+			const span = document.createElement("span")
+			span.appendChild(document.createTextNode(rm.name))
+			th.appendChild(span)
+			
+			const img = document.createElement('img')
+			img.src = "icons/capacity.png"
+			img.alt = "capacity"
+			th.appendChild(img)
+			
+			const small = document.createElement("small")
+			small.appendChild(document.createTextNode(rm.capacity))
+			th.appendChild(small)
 			
 			for (i = startTime; i < endTime; i += timeStep) {
 				const td = tr.insertCell()
@@ -86,26 +99,25 @@ function createTable() {
 	document.getElementById("timetable").appendChild(tbl)
 }
 
-function selectButtonClick() {
+function dateInputChanged() {
 	const dayinput = document.getElementById("dayinput")
 	selectDay(dayinput.value)
 }
 
 /** select the date for which the data should be shown (in "YYYY-MM-DD" format) */
 function selectDay(date) {
-	const title = document.getElementById("dataTitle")
-	const hint = document.getElementById("dataHint")
+	const errorMsg = document.getElementById("inputerror")
 	if (!date) {
-		title.innerHTML = "Please select a day" // TODO: hide table...
-		hint.innerHTML = ""
+		errorMsg.innerHTML = "<p>Please select a valid date.</p>"
+		errorMsg.style.display = "block"  // TODO: hide table and usage stats
 	} else if (!Object.hasOwn(jkudata.available, date)) {
-		title.innerHTML = "No data for " + date // TODO: hide table...
 		const start = jkudata.range.start.split("T")[0]
 		const end = jkudata.range.end.split("T")[0]
-		hint.innerHTML = "Available data ranges from " + start + " until " + end + "."
+		errorMsg.innerHTML = `<p>No data available for ${date}.</p>` +
+			`<p>Try selecting a date between ${start} and ${end}.</p>`
+		errorMsg.style.display = "block" // TODO: hide table and usage stats
 	} else {
-		title.innerHTML = "Showing data for " + date
-		hint.innerHTML = ""
+		errorMsg.style.display = "none"
 		fillTable(date)
 	}
 }

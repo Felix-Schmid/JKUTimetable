@@ -1,9 +1,39 @@
+/* main menu styling */
 body {
 	font-family: sans-serif;
 }
 
-main {
+main, .chartRegion {
+	width: 900px;
 	max-width: 100%;
+	margin: 0 auto;
+}
+
+#disclaimer {
+	background-color: #e9e9e9;
+	border-left: 4px solid #c6c6c6;
+	padding: 8px;
+}
+
+#inputerror {
+	background-color: #ffd3d3;
+	border-left: 4px solid #ec5656;
+	padding: 8px;
+	display: none;
+}
+
+#inputerror p {
+	margin: 4px 0;
+}
+
+#datepanel {
+    font-size: 1.5em;
+    margin: 0.83em 0 0.83em 0;
+    font-weight: bold;
+}
+
+#datepanel input {
+	margin-left: 2px;
 }
 
 .unavailable {
@@ -17,37 +47,40 @@ main {
 
 /* tab control styling */
 .tab {
-	overflow: hidden;
-	border: 1px solid #ccc;
-	background-color: #f1f1f1;
-	margin-bottom: 20px;
+	display: flex;
+	justify-content: center;
+	margin: 40px 0;
+}
+
+.tab img {
+	vertical-align: middle;
+	margin-right: 5px;
 }
 
 .tab button {
-	background-color: inherit;
-	float: left;
 	border: none;
-	outline: none;
+	border-radius: 5px;
+	background-color: #e9e9e9;
 	cursor: pointer;
+	margin: 0 10px;
 	padding: 14px 16px;
 }
 
 .tab button:hover {
-	background-color: #ddd;
+	background-color: #afc6e8;
 }
 
 .tab button.tablinkactive {
-	background-color: #ccc;
+	background-color: #0d6efd;
+	color: white;
+}
+
+.tab button.tablinkactive img {
+	filter: invert(100%);
 }
 
 .tabcontent {
 	display: none;
-}
-
-.chartRegion {
-	width: 900px;
-	max-width: 100%;
-	margin: 0 auto;
 }
 
 /* table styling */
@@ -99,6 +132,16 @@ th {
 	z-index: 100;
 }
 
+th > img {
+	vertical-align: middle;
+}
+
+th > span {
+	margin-right: 5px;
+	vertical-align: middle;
+}
+
 th > small {
 	color: #888;
+	vertical-align: middle;
 }

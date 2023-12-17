@@ -16,82 +16,91 @@
 
 <main>
 	<h1>JKU Timetable</h1>
-	<h3> Disclaimer </h3>
-		<p>This is an unofficial service, provided without guarantees. Results are based on data from  <a href="https://jkuroomsearch.app/">jkuroomsearch.app</a></p>
-	<h3> Pick a day </h3>
-		<input type="date" id="dayinput" name="day input" />
-		<button type="button" name="select day" onclick="selectButtonClick()"> GO! </button>
-	<h2 id="dataTitle"> </h2>
-	<p id="dataHint"> </p>
+	<div id="disclaimer">
+		<strong>Disclaimer:</strong> This is an unofficial service, provided without guarantees.
+		Results are based on data from  <a href="https://jkuroomsearch.app/">jkuroomsearch.app</a>
+	</div>
+	
+	<div id="datepanel">
+		Showing data for <input type="date" id="dayinput" name="day input" onchange="dateInputChanged()" />
+	</div>
+	
+	<div id="inputerror">
+	
+	</div>
 	
 	<div class="tab">
-		<button id="defaultTab" class="tablinks" onclick="openTab(event, 'timetable')">Timetable</button>
-		<button class="tablinks" onclick="openTab(event, 'usageStats')">Usage Statistics</button>
-		<button class="tablinks" onclick="openTab(event, 'capacityStats')">Capacity Statistics</button>
-	</div>
-	
-	<div id="timetable" class="tabcontent">
-	
-	</div>
-
-	<div id="usageStats" class="tabcontent chartRegion"> <!-- per day -->
-		<h1> A total of ... hours of lectures this day! </h1> <!-- total amount of lectures (in hours) -->
-		
-		<h2> The busiest rooms for this day. </h2> <!-- x most busy rooms (in h of lectures) -->
-		<div class="chart">
-			<canvas id="busyRooms"></canvas>
-		</div>
-		
-		<h2> Which buildings get all the action? </h2> <!-- most busy buildings (in %) -->
-		<div class="chart">
-			<canvas id="busyBuildings"></canvas>
-		</div>
-		
-		<h2> Most students are here at... </h2> <!-- most busy time slots -->
-		<div class="chart">
-			<canvas id="timeslotUsage"></canvas>
-		</div>
-		
-		<h2> Are all rooms booked out? </h2> <!-- x highest usage % rooms -->
-		<div class="chart">
-			<canvas id="roomUsage"></canvas>
-		</div>
-		
-		<h2> Some slots are still available at... </h2> <!-- x lowest usage % rooms -->
-		<div class="chart">
-			<canvas id="buildingUsage"></canvas>
-		</div>
-	</div>
-
-	<div id="capacityStats" class="tabcontent chartRegion"> <!-- static -->
-		<h1 id="capacityStatsTitle"> </h1>
-		<p id="capacityStatsHint"> </p>
-		
-		<h2> 👏 This room can fit so many students in it. </h2>
-		<p> Here are the 15 largest lecture rooms. </p>
-		<div class="chart">
-			<canvas id="largestRooms"></canvas>
-		</div>
-		
-		<h2> Small but mighty. </h2>
-		<p> And here the 15 smallest ones. </p>
-		<div class="chart">
-			<canvas id="smallestRooms"></canvas>
-		</div>
-		
-		<h2> Most of the rooms are in... </h2>
-		<p> How many lecture rooms there are per building. </p>
-		<div class="chart">
-			<canvas id="roomCount"></canvas>
-		</div>
-		
-		<h2> Which building can be the most crowded? </h2>
-		<p> The total capacity of all rooms in a building. </p>
-		<div class="chart">
-			<canvas id="largestBuildings"></canvas>
-		</div>
+		<button id="defaultTab" class="tablinks" onclick="openTab(event, 'timetable')">
+			<img src="icons/timetable.png" alt="timetable icon" /> Timetable
+		</button>
+		<button class="tablinks" onclick="openTab(event, 'usageStats')">
+			<img src="icons/usageStats.png" alt="usage statistics icon" /> Usage Statistics
+		</button>
+		<button class="tablinks" onclick="openTab(event, 'capacityStats')">
+			<img src="icons/capacityStats.png" alt="capacity statistics icon" /> Capacity Statistics
+		</button>
 	</div>
 </main>
+	
+<div id="timetable" class="tabcontent"></div>
+
+<div id="usageStats" class="tabcontent chartRegion"> <!-- per day -->
+	<h1> A total of ... hours of lectures this day! </h1> <!-- total amount of lectures (in hours) -->
+	
+	<h2> The busiest rooms for this day. </h2> <!-- x most busy rooms (in h of lectures) -->
+	<div class="chart">
+		<canvas id="busyRooms"></canvas>
+	</div>
+	
+	<h2> Which buildings get all the action? </h2> <!-- most busy buildings (in %) -->
+	<div class="chart">
+		<canvas id="busyBuildings"></canvas>
+	</div>
+	
+	<h2> Most students are here at... </h2> <!-- most busy time slots -->
+	<div class="chart">
+		<canvas id="timeslotUsage"></canvas>
+	</div>
+	
+	<h2> Are all rooms booked out? </h2> <!-- x highest usage % rooms -->
+	<div class="chart">
+		<canvas id="roomUsage"></canvas>
+	</div>
+	
+	<h2> Some slots are still available at... </h2> <!-- x lowest usage % rooms -->
+	<div class="chart">
+		<canvas id="buildingUsage"></canvas>
+	</div>
+</div>
+
+<div id="capacityStats" class="tabcontent chartRegion"> <!-- static -->
+	<h1 id="capacityStatsTitle"> </h1>
+	<p id="capacityStatsHint"> </p>
+	
+	<h2> 👏 This room can fit so many students in it. </h2>
+	<p> Here are the 15 largest lecture rooms. </p>
+	<div class="chart">
+		<canvas id="largestRooms"></canvas>
+	</div>
+	
+	<h2> Small but mighty. </h2>
+	<p> And here the 15 smallest ones. </p>
+	<div class="chart">
+		<canvas id="smallestRooms"></canvas>
+	</div>
+	
+	<h2> Most of the rooms are in... </h2>
+	<p> How many lecture rooms there are per building. </p>
+	<div class="chart">
+		<canvas id="roomCount"></canvas>
+	</div>
+	
+	<h2> Which building can be the most crowded? </h2>
+	<p> The total capacity of all rooms in a building. </p>
+	<div class="chart">
+		<canvas id="largestBuildings"></canvas>
+	</div>
+</div>
 
 </body>
 </html>
