@@ -1,5 +1,6 @@
 let jkudata = null
 const buildings = {}
+const usageCharts = {}
 const startTime = 510
 const endTime = 1335
 const timeStep = 15
@@ -12,9 +13,15 @@ function init() {
 	
 	fetch("https://jkuroomsearch.app/data/index.json")
 		.then((response) => response.json())
-		.then(data => { jkudata = data; createTable(); selectDay(date); createCapacityStatistics(); createUsageStatistics("2023-12-15") })
+		.then(data => {
+			jkudata = data;
+			createTable();
+			createAndFillCapacityStats();
+			createUsageStats();
+			selectDay(date);
+		})
 		
-		// TODO: system for lazy loading tabs...
+	// TODO: system for lazy loading tabs...
 		
 	document.getElementById("defaultTab").click();
 }
@@ -109,17 +116,18 @@ function selectDay(date) {
 	const errorMsg = document.getElementById("inputerror")
 	if (!date) {
 		errorMsg.innerHTML = "<p>Please select a valid date.</p>"
-		errorMsg.style.display = "block"  // TODO: hide table and usage stats
+		errorMsg.style.display = "block"
 	} else if (!Object.hasOwn(jkudata.available, date)) {
 		const start = jkudata.range.start.split("T")[0]
 		const end = jkudata.range.end.split("T")[0]
 		errorMsg.innerHTML = `<p>No data available for <strong>${date}</strong>.</p>` +
 			`<p>Try selecting a date between <strong>${start}</strong> and <strong>${end}</strong>.</p>`
-		errorMsg.style.display = "block" // TODO: hide table and usage stats
+		errorMsg.style.display = "block"
 	} else {
 		errorMsg.style.display = "none"
-		fillTable(date)
 	}
+	fillTable(date)
+	fillUsageStats(date)
 }
 
 /** fill the time table with availablility data for the specified day (in "YYYY-MM-DD" format) */
@@ -153,7 +161,7 @@ function fillTable(date) {
 function isAvailable(room, time, date) {
 	const day = jkudata.available[date]
 	
-	if (Object.keys(day).length === 0) { // days with no slots are empty objects
+	if (day == undefined || Object.keys(day).length === 0) { // days with no slots are empty objects
 		return true
 	}
 	for (let slot in day[room]) {
@@ -164,9 +172,10 @@ function isAvailable(room, time, date) {
 	return false
 }
 
-/** create all charts and other info for the usage stats page */
-function createUsageStatistics(date) {
-	const rs = Array(Object.keys(jkudata.rooms).length)
+let busyTimeSlots = null
+
+function fillUsageStats(date) {
+		const rs = Array(Object.keys(jkudata.rooms).length)
 	const bs = Array(Object.keys(jkudata.buildings).length)
 	const slots = Array((endTime - startTime) / timeStep).fill(0)
 	const slotNames = Array((endTime - startTime) / timeStep)
@@ -204,12 +213,6 @@ function createUsageStatistics(date) {
 	
 	const totalHours = Math.round(totalTime / 60)
 	const bsf = bs.filter(function (elem) { return elem != null; })
-	const stackedOption = {
-			scales: {
-				x: { stacked: true },
-				y: { stacked: true }
-			}
-		}
 	
 	// total hours
 	document.getElementById("usageStatsTitle").innerHTML = `A total of ~${totalHours} hours of lectures this day!`
@@ -223,31 +226,66 @@ function createUsageStatistics(date) {
 	}
 	
 	// busiest time slots
-	new Chart(document.getElementById("busyTimeSlots"), {
+	const btsChart = usageCharts.busyTimeSlots
+	btsChart.data.labels = slotNames
+	btsChart.data.datasets[0].data = slots
+	btsChart.update()
+	
+	rs.sort((a, b) => b.time - a.time)
+	const brChart = usageCharts.busyRooms
+	brChart.data.labels = rs.slice(0, 15).map(item => item.name)
+	brChart.data.datasets[0].data = rs.slice(0, 15).map(item => item.time / (slots.length * timeStep) * 100)
+	brChart.data.datasets[1].data = rs.slice(0, 15).map(item => 100 - (item.time / (slots.length * timeStep)) * 100)
+	brChart.update()
+	
+	rs.sort((a, b) => a.time - b.time)
+	const lrChart = usageCharts.lazyRooms
+	lrChart.data.labels = rs.slice(0, 15).map(item => item.name)
+	lrChart.data.datasets[0].data = rs.slice(0, 15).map(item => item.time / (slots.length * timeStep) * 100)
+	lrChart.data.datasets[1].data = rs.slice(0, 15).map(item => 100 - (item.time / (slots.length * timeStep)) * 100)
+	lrChart.update()
+	
+	bsf.sort((a, b) => b.time - a.time)
+	const bbChart = usageCharts.busyBuildings
+	bbChart.data.labels = bsf.map(item => shortBuildingName(item.name))
+	bbChart.data.datasets[0].data = bsf.map(item => item.time / 60)
+	bbChart.update()
+}
+
+/** create all charts and other info for the usage stats page */
+function createUsageStats() {
+	const stackedOption = {
+		scales: {
+			x: { stacked: true },
+			y: { stacked: true }
+		}
+	}
+	
+	// busiest time slots
+	usageCharts.busyTimeSlots = new Chart(document.getElementById("busyTimeSlots"), {
 		type: "line",
 		data: {
-			labels: slotNames,
+			labels: [],
 			datasets: [{
 				label: "# of lectures",
-				data: slots.map(item => item),
+				data: [],
 				backgroundColor: "#5b9bd5"
 			}]
 		}
 	});
 	
 	// busiest rooms
-	rs.sort((a, b) => b.time - a.time)
-	new Chart(document.getElementById("busyRooms"), {
+	usageCharts.busyRooms = new Chart(document.getElementById("busyRooms"), {
 		type: "bar",
 		data: {
-			labels: rs.slice(0, 15).map(item => item.name),
+			labels: [],
 			datasets: [{
 				label: "% occupied",
-				data: rs.slice(0, 15).map(item => item.time / (slots.length * timeStep) * 100),
+				data: [],
 				backgroundColor: "#ed7d31"
 			}, {
 				label: "% free",
-				data: rs.slice(0, 15).map(item => 100 - (item.time / (slots.length * timeStep)) * 100),
+				data: [],
 				backgroundColor: "#70ad47"
 			}]
 		},
@@ -255,18 +293,17 @@ function createUsageStatistics(date) {
 	});
 	
 	// laziest rooms
-	rs.sort((a, b) => a.time - b.time)
-	new Chart(document.getElementById("lazyRooms"), {
+	usageCharts.lazyRooms = new Chart(document.getElementById("lazyRooms"), {
 		type: "bar",
 		data: {
-			labels: rs.slice(0, 15).map(item => item.name),
+			labels: [],
 			datasets: [{
 				label: "% occupied",
-				data: rs.slice(0, 15).map(item => item.time / (slots.length * timeStep) * 100),
+				data: [],
 				backgroundColor: "#ed7d31"
 			}, {
 				label: "% free",
-				data: rs.slice(0, 15).map(item => 100 - (item.time / (slots.length * timeStep)) * 100),
+				data: [],
 				backgroundColor: "#70ad47"
 			}]
 		},
@@ -274,14 +311,13 @@ function createUsageStatistics(date) {
 	});
 	
 	// busy buildings
-	bsf.sort((a, b) => b.time - a.time)
-	new Chart(document.getElementById("busyBuildings"), {
+	usageCharts.busyBuildings = new Chart(document.getElementById("busyBuildings"), {
 		type: "bar",
 		data: {
-			labels: bsf.map(item => shortBuildingName(item.name)),
+			labels: [],
 			datasets: [{
 				label: "total lecture time",
-				data: bsf.map(item => item.time / 60),
+				data: [],
 				backgroundColor: "#5b9bd5"
 			}]
 		}
@@ -289,7 +325,7 @@ function createUsageStatistics(date) {
 }
 
 /** create all charts and other info for the capacity stats page */
-function createCapacityStatistics() {
+function createAndFillCapacityStats() {
 	const rs = Array(Object.keys(jkudata.rooms).length)
 	const bs = Array(Object.keys(jkudata.buildings).length)
 	let totalCap = 0
