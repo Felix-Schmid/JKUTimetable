@@ -1,12 +1,17 @@
 # JKU Timetable
 
-This website will use data from jkuroomsearch.app to show what's happening at the university.
+This website uses data from jkuroomsearch.app to show what's happening at the university.
 
-## Work in Progress
+## Usage
 
-The website is currently still in progress and not all the design/features are implemented or in their final form...
+Select a date in the main menu and then marvel at the data visualization in three categories:
+
+**Timetable:** A timetable of the entire day for all rooms.
+**Usage statistics:** Various usage charts for the selected day and month.
+**Capacity statistics:** Charts about room and building capacities.
 
 ## Live demo
 
-If you want to quickly see the website in action you can do so here:
+A website says more than 1000 words.
+If you want to quickly see it in action you can do so here:
 https://missing.sai.jku.at/~k11806713/
