@@ -1,6 +1,6 @@
 # JKU Timetable
 
-This website uses data from jkuroomsearch.app to show what's happening at the university.
+This website uses data from jkuroomsearch.app to show what's happening at the JKU university.
 
 ## Usage
 
@@ -14,4 +14,4 @@ Select a date in the main menu and then marvel at the data visualization in thre
 
 A website says more than 1000 words.
 If you want to quickly see it in action you can do so here:
-https://missing.sai.jku.at/~k11806713/
+https://felix-schmid.github.io/JKUTimetable
