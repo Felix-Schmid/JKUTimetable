@@ -7,7 +7,9 @@ This website uses data from jkuroomsearch.app to show what's happening at the JK
 Select a date in the main menu and then marvel at the data visualization in three categories:
 
 **Timetable:** A timetable of the entire day for all rooms.
+
 **Usage statistics:** Various usage charts for the selected day and month.
+
 **Capacity statistics:** Charts about room and building capacities.
 
 ## Live demo
