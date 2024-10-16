@@ -34,6 +34,10 @@ function createTable() {
 		const r = jkudata.rooms[room]
 		const bNo = r.building
 		
+		if (jkudata.buildings[bNo] == undefined) {
+			continue // skip rooms that are not part of a valid building
+		}
+		
 		if (buildings[bNo] == undefined) {
 			buildings[bNo] = {}
 		}
